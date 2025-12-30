@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>집합 추리 게임</title>
+
+<style>
+@font-face {
+  font-family: 'CookieRun';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/CookieRun-Regular.woff') format('woff');
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'CookieRun', sans-serif;
+  background:#d0e9f7;
+  text-align:center;
+  padding:20px;
+  font-size:18px;
+  margin: 0;
+}
+
+h1 { 
+  color:#ff7fae; 
+  font-size: 2rem;
+  margin-bottom: 20px;
+}
+
+button {
+  font-family:'CookieRun', sans-serif;
+  padding:12px 24px;
+  border-radius:15px;
+  border:none;
+  background:#ffccd9;
+  color:white;
+  font-size:18px;
+  cursor:pointer;
+  transition: 0.3s;
+  margin: 5px;
+  touch-action: manipulation;
+}
+
+button:hover {
+  background:#ff7fae;
+}
+
+.content-box {
+  background: white;
+  border-radius: 15px;
+  padding: 15px;
+  max-width: 600px;
+  margin: 20px auto;
+  font-size: 18px;
+  line-height: 1.6;
+  width: 95%;
+}
+
+#gameRules {
+  background:white;
+  border: 3px dashed #ff7fae;
+  text-align:left;
+}
+
+#backgroundStory {
+  background:#e6f5fc;
+}
+
+#suspectList {
+  display:flex;
+  justify-content:center;
+  gap:10px;
+  margin-top:15px;
+  flex-wrap: wrap;
+}
+
+.suspect {
+  padding:10px 18px;
+  border-radius:15px;
+  border:2px solid #ff7fae;
+  background:white;
+  cursor:pointer;
+  font-size:16px;
+  margin-bottom: 5px;
+}
+
+#speechBubbles {
+  display:flex;
+  justify-content:center;
+  gap:10px;
+  margin-top:15px;
+  flex-wrap: wrap;
+}
+
+.speech {
+  background:white;
+  border:2px solid #ff7fae;
+  border-radius:15px;
+  padding:12px;
+  width: 260px;
+  text-align:left;
+  font-size:16px;
+  line-height:1.5;
+}
+
+@media (max-width: 600px) {
+  .speech {
+    width: 100%;
+    max-width: 100%;
+  }
+  h1 { font-size: 1.5rem; }
+  body { padding: 10px; }
+}
+
+#gameArea { display:none; }
+
+#question { font-size:20px; margin-top:20px; word-break: keep-all; }
+
+input {
+  padding:10px;
+  border-radius:10px;
+  border:1px solid #ccc;
+  font-size:18px;
+  text-align:center;
+  width: 80%;
+  max-width: 300px;
+  margin-bottom: 10px;
+}
+
+#message {
+  margin-top:10px;
+  font-size:20px;
+  font-weight:bold;
+}
+
+#clues {
+  background:#e6f5fc;
+  border-radius:15px;
+  padding:12px;
+  width: 95%;
+  max-width: 520px;
+  min-height:180px;
+  margin:20px auto;
+}
+
+#clues p { cursor:pointer; margin:8px 0; padding: 5px; border-bottom: 1px dashed #ccc; }
+
+.notePopup {
+  position:absolute;
+  background:white;
+  border:2px solid #ff7fae;
+  border-radius:10px;
+  padding:10px;
+  font-size:16px;
+  display:none;
+  max-width:280px;
+  white-space:normal;
+  z-index: 100;
+  box-shadow: 2px 2px 10px rgba(0,0,0,0.2);
+  word-break: keep-all;
+}
+
+#resultScreen { display:none; }
+
+.feedback-item {
+  background: white;
+  border: 2px solid #ff7fae;
+  border-radius: 12px;
+  padding: 10px;
+  margin: 10px auto;
+  width: 95%;
+  max-width: 450px;
+  font-size: 16px;
+  text-align: left;
+  word-wrap: break-word;
+}
+
+textarea {
+  width: 95%;
+  max-width: 420px;
+  height: 120px;
+  font-family:'CookieRun', sans-serif;
+  font-size:18px;
+  border-radius:12px;
+  border:2px solid #ff7fae;
+  padding:10px;
+  resize: vertical;
+}
+</style>
+</head>
+
+<body>
+
+<div id="startScreen">
+  <h1>🧩 집합 추리 게임</h1>
+
+  <div id="gameRules" class="content-box">
+    <h3>📖 게임 방법</h3>
+    1. <b>집합 문제</b>를 풀어주세요.<br>
+    2. 정답 입력 시 <b>숫자만 붙여서(예: 135)</b> 적어도 됩니다.<br>
+    3. 정답을 맞히면 <b>단서</b>를 획득합니다.<br>
+    4. 획득한 <b>단서를 클릭</b>하면 상세 내용을 볼 수 있습니다.<br>
+    5. 모든 단서를 모아 <b>범인을 지목</b>하세요!
+  </div>
+
+  <div id="backgroundStory" class="content-box">
+    2025년 8월 22일 일요일, 외딴 산장 스튜디오에서 유명 화가 알렉산더 블레이크(50세, 남)가 조각칼에 목을 찔린 채 사망했습니다.
+    시신은 8시 정각에 발견되었고, 사망 추정 시간은 7시 50분입니다.
+    스튜디오 문과 창문은 모두 잠겨있는 완벽한 밀실 상태였습니다.
+  </div>
+
+  <button onclick="startGame()">게임 시작</button>
+</div>
+
+<div id="gameArea">
+
+  <div id="suspectList"></div>
+  <div id="speechBubbles"></div>
+
+  <p id="question"></p>
+  <input id="answer" placeholder="예: 135 (숫자만 입력)" type="tel">
+  <br>
+  <button onclick="checkAnswer()">제출</button>
+  <p id="message"></p>
+
+  <h3>단서 목록 (Click!)</h3>
+  <div id="clues"></div>
+</div>
+
+<div id="resultScreen">
+  <h2 id="finalResult"></h2>
+  <br>
+  <button onclick="goToFeedback()">📝 감상평 남기러 가기</button>
+</div>
+
+<div id="feedbackScreen" style="display:none;">
+  <h2>📝 감상평 남기기</h2>
+
+  <textarea id="feedbackInput" placeholder="게임을 해본 감상평을 적어주세요!"></textarea>
+  <br><br>
+
+  <button onclick="submitFeedback()">제출</button>
+
+  <h3 style="margin-top:25px;">📌 남겨진 감상평</h3>
+  <div id="feedbackList"></div>
+</div>
+
+<div id="notePopup" class="notePopup"></div>
+
+<script>
+// 페이지 로드 시 저장된 감상평 불러오기
+window.onload = function() {
+  loadFeedback();
+};
+
+const suspects = [
+  {
+    name:"엘리자(알렉산더의 조수이자 모델)",
+    speech:"저는 7시 30분부터 주방에서 아침을 준비했어요. 7시 45분쯤 선생님께서 스튜디오로 들어가는 것을 보았고, 곧바로 문이 잠기는 소리를 들었어요. 그리고 그 후로는 계속 주방에만 있었어요."
+  },
+  {
+    name:"마커스(알렉산더의 친구이자 미술품 딜러)",
+    speech:"저는 7시 40분에 스튜디오에 잠시 들러 오늘 떠난다고 작별인사를 했습니다. 그리고 7시 45분에 나와 곧바로 옆 휴게실로 가서 짐을 챙겼습니다. (목을 만지며) 잠시만요, 너무 목이 마르고 덥네요. 물 좀 마시러 가도 될까요?"
+  },
+  {
+    name:"소피아(알렉산더의 부인이자 작가)",
+    speech:"7시 30분부터 정원에서 산책했고, 7시 50분쯤 스튜디오 옆을 지나 방으로 들어왔어요. 노래를 듣느라 아무런 소리도 듣지 못했고, 그 방은 아마도 7시 45분부터 잠겨있었을 겁니다."
+  }
+];
+
+const problems = [
+  {
+    question:"U={1,2,3,4,5,6}, A={1,2,4}, B={2,3,5}, (A∩B)ᶜ = ?",
+    answer:[1,3,4,5,6],
+    clue:"단서1: 바닥에 젖은 오렌지색 얼룩 발견"
+  },
+  {
+    question:"U={1,2,3,4,5,6}, A={1,3,5}, B={2,3,4}, Aᶜ ∪ B = ?",
+    answer:[2,3,4,6],
+    clue:"단서2: 스튜디오 내부 히터 온도 28°C"
+  },
+  {
+    question:"U={1,2,3,4,5,6}, A={1,2,3}, B={3,4,5}, (A∪B)ᶜ = ?",
+    answer:[6],
+    clue:"단서3: 창문 잠금쇠 주변 미세한 자국"
+  },
+  {
+    question:"U={1,2,3,4,5,6}, A={1,2,5}, B={2,3,6}, (A∪B)ᶜ = ?",
+    answer:[4],
+    clue:"단서 4: 누군가의 얼음 발견"
+  },
+  {
+    question:"U={1,2,3,4,5,6}, A={1,4}, B={2,4,6}, Aᶜ ∩ Bᶜ = ?",
+    answer:[3,5],
+    clue:"단서5: 수상한 남성용 코트와 셔츠 발견"
+  }
+];
+
+let idx=0;
+let clues=[];
+
+function startGame(){
+  document.getElementById("startScreen").style.display="none";
+  document.getElementById("gameArea").style.display="block";
+
+  suspects.forEach(s=>{
+    const b=document.createElement("div");
+    b.className="suspect";
+    b.innerText=s.name;
+    b.onclick=()=>guessSuspect(s.name);
+    document.getElementById("suspectList").appendChild(b);
+
+    const sp=document.createElement("div");
+    sp.className="speech";
+    sp.innerText=`${s.name}\n${s.speech}`;
+    document.getElementById("speechBubbles").appendChild(sp);
+  });
+
+  showProblem();
+}
+
+function showProblem(){
+  if(idx>=problems.length){
+    document.getElementById("question").innerText="모든 문제를 풀었습니다. 범인을 선택하세요.";
+    return;
+  }
+  document.getElementById("question").innerText=problems[idx].question;
+}
+
+// ⭐ 가장 중요한 수정 부분 ⭐
+function checkAnswer(){
+  const rawInput = document.getElementById("answer").value;
+  
+  // 1. 입력된 값에서 숫자만 싹 다 긁어모읍니다. (예: "1, 3a b 5" -> "135")
+  const userDigits = rawInput.replace(/[^0-9]/g, "").split("").sort().join("");
+  
+  // 2. 정답 데이터도 숫자만 싹 긁어모아서 정렬합니다. (예: [1,3,5] -> "135")
+  const correctDigits = problems[idx].answer.sort().join("");
+
+  // 3. 아무것도 입력 안 했을 때 처리
+  if (userDigits.length === 0) {
+    document.getElementById("message").innerText = "숫자를 입력해주세요!";
+    return;
+  }
+
+  // 4. 순수 숫자 문자열끼리 비교
+  if(userDigits === correctDigits){
+    clues.push(problems[idx].clue);
+    updateClues();
+    idx++;
+    showProblem();
+    document.getElementById("message").innerText = "정답!";
+    document.getElementById("answer").value = "";
+  } else {
+    document.getElementById("message").innerText = "틀렸어요!";
+  }
+}
+
+function updateClues(){
+  const d=document.getElementById("clues");
+  d.innerHTML="";
+  clues.forEach(c=>{
+    const p=document.createElement("p");
+    p.innerText=c;
+    p.onclick=e=>showPopup(e,c);
+    d.appendChild(p);
+  });
+}
+
+function showPopup(e,c){
+  const p=document.getElementById("notePopup");
+
+  const map={
+    "단서1":"화학 분석 결과 일반 사람이 구하기 어려운 광택제와 젤라틴 검출",
+    "단서2":"사건 당시 실외 온도는 20도",
+    "단서3":"외부에서 잠금쇠를 조작한 흔적 있음",
+    "단서4":"스튜디오 내부에 있었지만 녹지 않았음",
+    "단서5":"등 부분에 약간의 땀 얼룩이 있음"
+  };
+
+  const key = Object.keys(map).find(k =>
+    c.replace(" ", "").includes(k)
+  );
+
+  p.innerText = key ? map[key] : "";
+  
+  if(window.innerWidth < 600) {
+    p.style.left = "50%";
+    p.style.top = "50%";
+    p.style.transform = "translate(-50%, -50%)";
+    p.style.position = "fixed";
+  } else {
+    p.style.left = e.pageX + "px";
+    p.style.top = e.pageY + "px";
+    p.style.transform = "none";
+    p.style.position = "absolute";
+  }
+  
+  p.style.display = "block";
+
+  clearTimeout(p._timer);
+  p._timer = setTimeout(()=>p.style.display="none",3000);
+}
+
+function guessSuspect(name){
+  if(clues.length < problems.length){
+    alert("모든 단서를 모아야 합니다!");
+    return;
+  }
+
+  document.getElementById("gameArea").style.display = "none";
+  document.getElementById("resultScreen").style.display = "block";
+
+  document.getElementById("finalResult").innerText =
+    name.includes("마커스")
+      ? "🎉 정답! 범인은 마커스!"
+      : "❌ 오답입니다.";
+}
+
+function goToFeedback() {
+  document.getElementById("resultScreen").style.display = "none";
+  document.getElementById("feedbackScreen").style.display = "block";
+}
+
+function submitFeedback(){
+  const text = document.getElementById("feedbackInput").value;
+  if(text.trim()==="") return;
+
+  addFeedbackToDOM(text);
+  saveFeedbackToStorage(text);
+
+  document.getElementById("feedbackInput").value = "";
+}
+
+function addFeedbackToDOM(text) {
+  const box = document.createElement("div");
+  box.className = "feedback-item";
+  box.innerText = text;
+  document.getElementById("feedbackList").appendChild(box);
+}
+
+function saveFeedbackToStorage(text) {
+  let feedbacks = JSON.parse(localStorage.getItem('gameFeedback')) || [];
+  feedbacks.push(text);
+  localStorage.setItem('gameFeedback', JSON.stringify(feedbacks));
+}
+
+function loadFeedback() {
+  let feedbacks = JSON.parse(localStorage.getItem('gameFeedback')) || [];
+  feedbacks.forEach(text => {
+    addFeedbackToDOM(text);
+  });
+}
+</script>
+
+</body>
+</html>
